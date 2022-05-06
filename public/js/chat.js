@@ -115,9 +115,17 @@ function appendMessage(name, img, side, text, date) {
 // LARAVEL ECHO
 Echo.join(`chat.${chatId}`)
     .listen('MessageSend', (e) => {
-        console.log("Event: ", e);
+        // console.log("Event: ", e);
+        // console.log("Event Message: ", e.message);
+        appendMessage(
+            e.message.user.name,
+            PERSON_IMG,
+            'left',
+            e.message.content,
+            formatDate(new Date(e.message.created_at))
+        );
 
-    })
+    });
 
 
 
