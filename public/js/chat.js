@@ -10,6 +10,7 @@ const chatStatus = get(".chatStatus");
 const typing = get(".typing");
 const chatId = window.location.pathname.split("/")[2];
 let authUser;
+let typingTimer = false;
 
 window.onload = () => {
     // Get user data
@@ -74,6 +75,23 @@ window.onload = () => {
                     if (user.id != authUser.id) {
                         chatStatus.className = 'chatStatus offline';
                     }
+                })
+                .listenForWhisper('typing', (e) => {
+                    // console.log(e);
+                    if (e > 0)
+                        typing.style.display = '';
+
+                    if (typingTimer) {
+                        clearTimeout(typingTimer);
+                    }
+
+                    typingTimer = setTimeout(() => {
+
+                        typing.style.display = 'none';
+
+                        typingTimer = false;
+
+                    }, 3000);
                 });
 
         })
@@ -171,3 +189,11 @@ function formatDate(date) {
 function scrollTopBottom() {
     msgerChat.scrollTop = msgerChat.scrollHeight;
 }
+
+function sendTypingEvent() {
+    typingTimer = true;
+
+    Echo.join(`chat.${chatId}`)
+        .whisper('typing', msgerInput.value.length);
+}
+
