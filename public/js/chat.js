@@ -39,6 +39,44 @@ window.onload = () => {
         })
 
     })
+        .then(() => {
+            // LARAVEL ECHO
+            Echo.join(`chat.${chatId}`)
+                .listen('MessageSend', (e) => {
+                    // console.log("Event: ", e);
+                    // console.log("Event Message: ", e.message);
+                    appendMessage(
+                        e.message.user.name,
+                        PERSON_IMG,
+                        'left',
+                        e.message.content,
+                        formatDate(new Date(e.message.created_at))
+                    );
+
+                })
+                .here(users => {
+                    // console.log("Users: ", users);
+                    // console.log(authUser);
+
+                    let result = users.filter(user => user.id != authUser.id);
+                    if (result.length > 0) {
+                        chatStatus.className = 'chatStatus online';
+                    }
+                })
+                .joining(user => {
+                    // console.log("User: ", user);
+                    if (user.id != authUser.id) {
+                        chatStatus.className = 'chatStatus online';
+                    }
+                })
+                .leaving(user => {
+                    // console.log("User: ", user);
+                    if (user.id != authUser.id) {
+                        chatStatus.className = 'chatStatus offline';
+                    }
+                });
+
+        })
         .catch(err => {
             console.log(err);
         });
@@ -112,20 +150,7 @@ function appendMessage(name, img, side, text, date) {
     scrollTopBottom();
 }
 
-// LARAVEL ECHO
-Echo.join(`chat.${chatId}`)
-    .listen('MessageSend', (e) => {
-        // console.log("Event: ", e);
-        // console.log("Event Message: ", e.message);
-        appendMessage(
-            e.message.user.name,
-            PERSON_IMG,
-            'left',
-            e.message.content,
-            formatDate(new Date(e.message.created_at))
-        );
 
-    });
 
 
 
