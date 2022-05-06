@@ -30,8 +30,15 @@ window.onload = () => {
             console.log(err);
         })
 
-    })
+    }).then(() => {
+        axios.get(`/chat/${chatId}/get_messages`).then(res => {
+            // console.log("res", res);
+            appendMessages(res.data.messages);
+        }).catch(err => {
+            console.log(err);
+        })
 
+    })
         .catch(err => {
             console.log(err);
         });
@@ -68,6 +75,21 @@ msgerForm.addEventListener("submit", event => {
 
 });
 
+function appendMessages(messages) {
+    let side = 'left';
+    messages.forEach(message => {
+        side = (message.user_id == authUser.id) ? 'right' : 'left';
+
+        appendMessage(
+            message.user.name,
+            PERSON_IMG,
+            side,
+            message.content,
+            formatDate(new Date(message.created_at))
+        );
+    });
+}
+
 function appendMessage(name, img, side, text, date) {
     //   Simple solution for small apps
     const msgHTML = `
@@ -86,7 +108,8 @@ function appendMessage(name, img, side, text, date) {
   `;
 
     msgerChat.insertAdjacentHTML("beforeend", msgHTML);
-    msgerChat.scrollTop += 500;
+    // msgerChat.scrollTop += 500;
+    scrollTopBottom();
 }
 
 // LARAVEL ECHO
@@ -95,6 +118,8 @@ Echo.join(`chat.${chatId}`)
         console.log("Event: ", e);
 
     })
+
+
 
 // Utils
 function get(selector, root = document) {
@@ -108,4 +133,8 @@ function formatDate(date) {
     const h = "0" + date.getHours();
     const m = "0" + date.getMinutes();
     return `${d}/${mo}/${y} ${h.slice(-2)}:${m.slice(-2)}`;
+}
+
+function scrollTopBottom() {
+    msgerChat.scrollTop = msgerChat.scrollHeight;
 }
