@@ -1,11 +1,43 @@
+// const { default: axios } = require("axios");
+
 // REPOSITORIO https://codepen.io/sajadhsm/pen/odaBdd
 const msgerForm = get(".msger-inputarea");
 const msgerInput = get(".msger-input");
 const msgerChat = get(".msger-chat");
-const PERSON_IMG = "https://image.flaticon.com/icons/svg/145/145867.svg";
+const PERSON_IMG = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 const chatWith = get(".chatWith");
 const chatStatus = get(".chatStatus");
 const typing = get(".typing");
+const chatId = window.location.pathname.split("/")[2];
+let authUser;
+
+window.onload = () => {
+    // Get user data
+    axios.get('/auth/user').then(res => {
+        // console.log("res", res);
+        authUser = res.data.authUser;
+        // console.log(authUser);
+    }).then(() => {
+        // LISTADO DE USUARIOS
+        axios.get(`/chat/${chatId}/get_users`).then(res => {
+            // console.log("res", res);
+            let results = res.data.filter(user => user.id != authUser.id);
+            if (results.length > 0) {
+                chatWith.innerHTML = results[0].name;
+            }
+            // console.log(authUser);
+        }).catch(err => {
+            console.log(err);
+        })
+
+    })
+
+        .catch(err => {
+            console.log(err);
+        });
+
+
+}
 
 msgerForm.addEventListener("submit", event => {
 
@@ -15,13 +47,28 @@ msgerForm.addEventListener("submit", event => {
 
     if (!msgText) return;
 
-    // Aquí vamos a colocar código más adelante
+    axios.post('/message/send', {
+        message: msgText,
+        chat_id: 1
+    }).then(res => {
+
+        appendMessage(
+            res.data.user.name,
+            PERSON_IMG,
+            'right',
+            res.data.content,
+            formatDate(new Date(res.data.created_at))
+        );
+
+    }).catch(error => {
+        console.log(error);
+    });
 
     msgerInput.value = "";
 
 });
 
-function appendMessage(name, img, side, text) {
+function appendMessage(name, img, side, text, date) {
     //   Simple solution for small apps
     const msgHTML = `
     <div class="msg ${side}-msg">
@@ -30,7 +77,7 @@ function appendMessage(name, img, side, text) {
       <div class="msg-bubble">
         <div class="msg-info">
           <div class="msg-info-name">${name}</div>
-          <div class="msg-info-time">${formatDate(new Date())}</div>
+          <div class="msg-info-time">${date}</div>
         </div>
 
         <div class="msg-text">${text}</div>
@@ -41,6 +88,13 @@ function appendMessage(name, img, side, text) {
     msgerChat.insertAdjacentHTML("beforeend", msgHTML);
     msgerChat.scrollTop += 500;
 }
+
+// LARAVEL ECHO
+Echo.join(`chat.${chatId}`)
+    .listen('MessageSend', (e) => {
+        console.log("Event: ", e);
+
+    })
 
 // Utils
 function get(selector, root = document) {

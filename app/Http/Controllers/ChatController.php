@@ -17,7 +17,8 @@ class ChatController extends Controller
     public function chat_with(User $user)
     {
         // Primero recuperamos al usuario que realiza la solicitud
-        $user_a = auth()->user();
+        // $user_a = auth()->user();
+        $user_a = User::find(auth()->user()->id);
 
         // Usuario con el que deseamos chatear
         $user_b = $user;
@@ -44,5 +45,11 @@ class ChatController extends Controller
             'chat' => $chat,
 
         ]);
+    }
+
+    public function get_users(Chat $chat)
+    {
+        $users = $chat->users;
+        return response()->json($users);
     }
 }
